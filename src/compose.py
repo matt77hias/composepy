@@ -140,10 +140,11 @@ def multiple_windowed(fname, images, shifts=(64,64)):
     
     index = 0
     for (y_min, y_max) in zip(range(0,resolution[0]+1,shifts[0]), range(shifts[0],resolution[0]+1,shifts[0])):
-         for (x_min, x_max) in zip(range(0,resolution[1]+1,shifts[1]), range(shifts[1],resolution[1]+1,shifts[1])):
+        for (x_min, x_max) in zip(range(0,resolution[1]+1,shifts[1]), range(shifts[1],resolution[1]+1,shifts[1])):
             mask = construct_window_mask(resolution, y_min, y_max, x_min, x_max)
             masked_images[index].add_mask(mask=mask)
             index = (index + 1) % nb_images
+        index = (index + 1) % nb_images
     
     return compose(masked_images=masked_images, fname=fname)
     
