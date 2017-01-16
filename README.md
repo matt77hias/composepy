@@ -7,3 +7,8 @@
 Image composition utilities.
 
 ## Use
+```python
+from compose import test
+
+test()
+```
