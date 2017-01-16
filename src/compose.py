@@ -57,7 +57,7 @@ class MaskedImage(object):
         else:
             self.mask = mask
         
-    def append_mask(self, mask):
+    def add_mask(self, mask):
         self.mask += mask
           
     def get_image(self):
@@ -96,7 +96,7 @@ def example_vertical(image, offset=0, shift=64):
     
     for (low, high) in zip(range(offset,resolution[1],shift), range(offset + shift // 2,resolution[1],shift)):
         mask = construct_vertical_mask(resolution, low, high)
-        masked_image.append_mask(mask)
+        masked_image.add_mask(mask)
     
     compose(masked_images=[masked_image], fname='Vertical.png')
     
@@ -106,7 +106,7 @@ def example_horizontal(image, offset=0, shift=64):
     
     for (low, high) in zip(range(offset,resolution[0],shift), range(offset + shift // 2,resolution[0],shift)):
         mask = construct_horizontal_mask(resolution, low, high)
-        masked_image.append_mask(mask)
+        masked_image.add_mask(mask)
 
     compose(masked_images=[masked_image], fname='Horizontal.png')
     
@@ -116,6 +116,6 @@ def example_windowed(image, offsets=(0,0), shifts=(64,64)):
     
     for (y_min, y_max) in zip(range(offsets[0],512,shifts[0]), range(offsets[0] + shifts[0] // 2,512,shifts[0])):
          for (x_min, x_max) in zip(range(offsets[1],512,shifts[1]), range(offsets[1] + shifts[1] // 2,512,shifts[1])):
-             masked_image.append_mask(construct_window_mask(resolution, y_min, y_max, x_min, x_max))
+             masked_image.add_mask(construct_window_mask(resolution, y_min, y_max, x_min, x_max))
 
     compose(masked_images=[masked_image], fname='Windowed.png')
