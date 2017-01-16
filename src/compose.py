@@ -58,7 +58,6 @@ class MaskedImage(object):
             self.mask = mask
         
     def append_mask(self, mask):
-        # only disjoint masks allowed currently
         self.mask += mask
           
     def get_image(self):
