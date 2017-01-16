@@ -4,70 +4,78 @@ import numpy as np
 ###################################################################################################################################################################################
 ## Image
 ###################################################################################################################################################################################
-def construct_image_from_file(fname):
-    return Image(cv2.imread(filename=fname))
-def construct_image_from_data(data):
-    return Image(data=data)
-
-class Image(object):
-    
-    def __init__(self, data):
-        self.data = data
-    
-    def get_data(self):
-        return self.data  
-    def get_resolution(self):
-        return self.data.shape
+def read_image(fname):
+    return cv2.imread(filename=fname)
 
 ###################################################################################################################################################################################
-## Tile
+## Mask
 ###################################################################################################################################################################################    
-def construct_window_tile(y_min, y_max, x_min, x_max):
-    return Tile(y_min=y_min, y_max=y_max, x_min=x_min, x_max=x_max)
-def construct_horizontal_tile(y_min, y_max, x_size):
-    return Tile(y_min=y_min, y_max=y_max, x_min=0, x_max=x_size)
-def construct_vertical_tile(x_min, x_max, y_size):
-    return Tile(y_min=0, y_max=y_size, x_min=x_min, x_max=x_max)
-
-class Tile(object):
+def construct_empty_mask(resolution):
+    return np.zeros(shape=resolution, dtype=np.bool)
     
-    def __init__(self, y_min, y_max, x_min, x_max):
-        self.y_min = y_min
-        self.y_max = y_max
-        self.x_min = x_min
-        self.x_max = x_max
-
-###################################################################################################################################################################################
-## ImageMosaic
-###################################################################################################################################################################################
-class ImageMosaic(object):
+def construct_full_mask(resolution):
+    return np.ones(shape=resolution, dtype=np.bool)
     
-    def __init__(self, image, tiles=[]):
+def construct_window_mask(resolution, y_min, y_max, x_min, x_max):
+    mask = construct_empty_mask(resolution=resolution)
+    if len(resolution) == 2:
+        mask[y_min:y_max,x_min:x_max] = 1
+    else:
+        mask[y_min:y_max,x_min:x_max,:] = 1
+    return mask
+    
+def construct_horizontal_mask(resolution, y_min, y_max):
+    mask = construct_empty_mask(resolution=resolution)
+    if len(resolution) == 2:
+        mask[y_min:y_max,:] = 1
+    else:
+        mask[y_min:y_max,:,:] = 1
+    return mask
+    
+def construct_vertical_mask(resolution, x_min, x_max):
+    mask = construct_empty_mask(resolution=resolution)
+    if len(resolution) == 2:
+        mask[:,x_min:x_max] = 1
+    else:
+        mask[:,x_min:x_max,:] = 1
+    return mask
+    
+def convert_to_mask(data):
+    mask = np.zeros(shape=data.shape, dtype=np.bool)
+    mask[np.where(data != 0)] = 1
+    return mask
+    
+###################################################################################################################################################################################
+## MaskedImage
+###################################################################################################################################################################################
+class MaskedImage(object):
+    
+    def __init__(self, image, mask=None):
         self.image = image
-        self.tiles = tiles
-        
-    def add_tiles(self, tiles):
-        if isinstance(tiles, list):
-            self.tiles += tiles
+        if mask is None:
+            self.mask = construct_empty_mask(resolution=self.image.shape)
         else:
-            self.tiles.append(tiles)
+            self.mask = mask
+        
+    def append_mask(self, mask):
+        # only disjoint masks allowed currently
+        self.mask += mask
           
     def get_image(self):
         return self.image
-    def get_tiles(self):
-        return self.tiles
+    def get_mask(self):
+        return self.mask
 
 ###################################################################################################################################################################################
 ## Composition
 ###################################################################################################################################################################################
-def compose(image_mosaics, fname=None):
-    resolution = image_mosaics[0].get_image().get_resolution()
-    composite_image = np.zeros(resolution)
+def compose(masked_images, fname=None):
+    if not masked_images:
+        return None
     
-    for im in image_mosaics:
-        image = im.get_image()
-        for tile in im.get_tiles():
-            composite_image[tile.y_min:tile.y_max, tile.x_min:tile.x_max, :] = image.get_data()[tile.y_min:tile.y_max, tile.x_min:tile.x_max, :]
+    composite_image = np.zeros_like(a=masked_images[0].get_image())
+    for masked_image in masked_images:
+        composite_image += masked_image.get_mask() * masked_image.get_image()
     
     if fname is not None:
         cv2.imwrite(fname, composite_image)
@@ -78,27 +86,37 @@ def compose(image_mosaics, fname=None):
 ## Examples
 ################################################################################################################################################################################### 
 def example_all():
-    example_vertical()
-    example_horizontal()
-    example_windowed()
+    image = read_image(fname='Lena.png')
+    example_vertical(image=image)
+    example_horizontal(image=image)
+    example_windowed(image=image)
 
-def example_vertical():
-    image_lena = construct_image_from_file(fname='Lena.png')
-    tiles_lena = [construct_vertical_tile(low, high, 512) for (low, high) in zip(range(0,512,64), range(32,512,64))]
-    im = ImageMosaic(image=image_lena, tiles=tiles_lena)
-    compose(image_mosaics=[im], fname='Vertical.png')
+def example_vertical(image, offset=0, shift=64):
+    masked_image = MaskedImage(image=image)
+    resolution = image.shape
     
-def example_horizontal():
-    image_lena = construct_image_from_file(fname='Lena.png')
-    tiles_lena = [construct_horizontal_tile(low, high, 512) for (low, high) in zip(range(0,512,64), range(32,512,64))]
-    im = ImageMosaic(image=image_lena, tiles=tiles_lena)
-    compose(image_mosaics=[im], fname='Horizontal.png')
+    for (low, high) in zip(range(offset,resolution[1],shift), range(offset + shift // 2,resolution[1],shift)):
+        mask = construct_vertical_mask(resolution, low, high)
+        masked_image.append_mask(mask)
     
-def example_windowed():
-    image_lena = construct_image_from_file(fname='Lena.png')
-    tiles_lena = []
-    for (y_min, y_max) in zip(range(0,512,64), range(32,512,64)):
-         for (x_min, x_max) in zip(range(0,512,64), range(32,512,64)):
-             tiles_lena.append(construct_window_tile(y_min, y_max, x_min, x_max))
-    im = ImageMosaic(image=image_lena, tiles=tiles_lena)
-    compose(image_mosaics=[im], fname='Windowed.png')
+    compose(masked_images=[masked_image], fname='Vertical.png')
+    
+def example_horizontal(image, offset=0, shift=64):
+    masked_image = MaskedImage(image=image)
+    resolution = image.shape
+    
+    for (low, high) in zip(range(offset,resolution[0],shift), range(offset + shift // 2,resolution[0],shift)):
+        mask = construct_horizontal_mask(resolution, low, high)
+        masked_image.append_mask(mask)
+
+    compose(masked_images=[masked_image], fname='Horizontal.png')
+    
+def example_windowed(image, offsets=(0,0), shifts=(64,64)):
+    masked_image = MaskedImage(image=image)
+    resolution = image.shape
+    
+    for (y_min, y_max) in zip(range(offsets[0],512,shifts[0]), range(offsets[0] + shifts[0] // 2,512,shifts[0])):
+         for (x_min, x_max) in zip(range(offsets[1],512,shifts[1]), range(offsets[1] + shifts[1] // 2,512,shifts[1])):
+             masked_image.append_mask(construct_window_mask(resolution, y_min, y_max, x_min, x_max))
+
+    compose(masked_images=[masked_image], fname='Windowed.png')
