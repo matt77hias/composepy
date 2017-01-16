@@ -79,45 +79,86 @@ def compose(masked_images, fname=None):
         composite_image += masked_image.apply_mask()
     
     if fname is not None:
-        cv2.imwrite(fname, composite_image)
+        cv2.imwrite(filename=fname, img=composite_image)
     
     return composite_image
     
 ###################################################################################################################################################################################
-## Examples
+## Shortcuts
 ################################################################################################################################################################################### 
-def example_all():
-    image = read_image(fname='Lena.png')
-    example_vertical(image=image)
-    example_horizontal(image=image)
-    example_windowed(image=image)
-
-def example_vertical(image, offset=0, shift=64):
-    masked_image = MaskedImage(image=image)
-    resolution = image.shape
+def single_vertical(fname, image, shift=64):
+    bg = np.zeros_like(image)
+    return multiple_vertical(fname=fname, images=[image, bg], shift=shift)
     
-    for (low, high) in zip(range(offset,resolution[1],shift), range(offset + shift // 2,resolution[1],shift)):
+def single_horizontal(fname, image, shift=64):
+    bg = np.zeros_like(image)
+    return multiple_horizontal(fname=fname, images=[image, bg], shift=shift)
+    
+def single_windowed(fname, image, shifts=(64,64)):
+    bg = np.zeros_like(image)
+    return multiple_windowed(fname=fname, images=[image, bg], shifts=shifts)
+    
+def multiple_vertical(fname, images, shift=64):
+    if not images:
+        return None
+        
+    masked_images = [MaskedImage(image=image) for image in images]
+    resolution = images[0].shape
+    nb_images = len(images)
+    
+    index = 0
+    for (low, high) in zip(range(0,resolution[1]+1,shift), range(shift,resolution[1]+1,shift)):
         mask = construct_vertical_mask(resolution, low, high)
-        masked_image.add_mask(mask)
+        masked_images[index].add_mask(mask=mask)
+        index = (index + 1) % nb_images
     
-    compose(masked_images=[masked_image], fname='Vertical.png')
+    return compose(masked_images=masked_images, fname=fname)
     
-def example_horizontal(image, offset=0, shift=64):
-    masked_image = MaskedImage(image=image)
-    resolution = image.shape
+def multiple_horizontal(fname, images, shift=64):
+    if not images:
+        return None
+        
+    masked_images = [MaskedImage(image=image) for image in images]
+    resolution = images[0].shape
+    nb_images = len(images)
     
-    for (low, high) in zip(range(offset,resolution[0],shift), range(offset + shift // 2,resolution[0],shift)):
+    index = 0
+    for (low, high) in zip(range(0,resolution[0]+1,shift), range(shift,resolution[0]+1,shift)):
         mask = construct_horizontal_mask(resolution, low, high)
-        masked_image.add_mask(mask)
-
-    compose(masked_images=[masked_image], fname='Horizontal.png')
+        masked_images[index].add_mask(mask=mask)
+        index = (index + 1) % nb_images
     
-def example_windowed(image, offsets=(0,0), shifts=(64,64)):
-    masked_image = MaskedImage(image=image)
-    resolution = image.shape
+    return compose(masked_images=masked_images, fname=fname)
     
-    for (y_min, y_max) in zip(range(offsets[0],512,shifts[0]), range(offsets[0] + shifts[0] // 2,512,shifts[0])):
-         for (x_min, x_max) in zip(range(offsets[1],512,shifts[1]), range(offsets[1] + shifts[1] // 2,512,shifts[1])):
-             masked_image.add_mask(construct_window_mask(resolution, y_min, y_max, x_min, x_max))
-
-    compose(masked_images=[masked_image], fname='Windowed.png')
+def multiple_windowed(fname, images, shifts=(64,64)):
+    if not images:
+        return None
+        
+    masked_images = [MaskedImage(image=image) for image in images]
+    resolution = images[0].shape
+    nb_images = len(images)
+    
+    index = 0
+    for (y_min, y_max) in zip(range(0,resolution[0]+1,shifts[0]), range(shifts[0],resolution[0]+1,shifts[0])):
+         for (x_min, x_max) in zip(range(0,resolution[1]+1,shifts[1]), range(shifts[1],resolution[1]+1,shifts[1])):
+            mask = construct_window_mask(resolution, y_min, y_max, x_min, x_max)
+            masked_images[index].add_mask(mask=mask)
+            index = (index + 1) % nb_images
+    
+    return compose(masked_images=masked_images, fname=fname)
+    
+###################################################################################################################################################################################
+## Tests
+################################################################################################################################################################################### 
+def test():
+    image1 = read_image(fname='Lena1.png')
+    
+    single_vertical(fname='SV.png', image=image1)
+    single_horizontal(fname='SH.png', image=image1)
+    single_windowed(fname='SW.png', image=image1)
+    
+    image2 = read_image(fname='Lena2.png')
+    
+    multiple_vertical(fname='MV.png', images=[image1, image2])
+    multiple_horizontal(fname='MH.png', images=[image1, image2])
+    multiple_windowed(fname='MW.png', images=[image1, image2])
