@@ -59,6 +59,8 @@ class MaskedImage(object):
         
     def add_mask(self, mask):
         self.mask += mask
+    def apply_mask(self):
+        return self.mask * self.image
           
     def get_image(self):
         return self.image
@@ -74,7 +76,7 @@ def compose(masked_images, fname=None):
     
     composite_image = np.zeros_like(a=masked_images[0].get_image())
     for masked_image in masked_images:
-        composite_image += masked_image.get_mask() * masked_image.get_image()
+        composite_image += masked_image.apply_mask()
     
     if fname is not None:
         cv2.imwrite(fname, composite_image)
