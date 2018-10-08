@@ -117,7 +117,7 @@ def multiple_vertical(fname, images, shift=64):
 def multiple_horizontal(fname, images, shift=64):
     if not images:
         return None
- 
+
     masked_images = [MaskedImage(image=image) for image in images]
     resolution = images[0].shape
     nb_images = len(images)
