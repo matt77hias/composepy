@@ -129,7 +129,7 @@ def multiple_horizontal(fname, images, shift=64):
         index = (index + 1) % nb_images
 
     return compose(masked_images=masked_images, fname=fname)
-    
+
 def multiple_windowed(fname, images, shifts=(64,64)):
     if not images:
         return None
