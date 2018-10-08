@@ -82,7 +82,7 @@ def compose(masked_images, fname=None):
         cv2.imwrite(filename=fname, img=composite_image)
 
     return composite_image
-    
+
 ###############################################################################
 ## Shortcuts
 ###############################################################################
