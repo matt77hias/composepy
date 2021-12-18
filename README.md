@@ -9,16 +9,16 @@
 # composepy
 
 <p align="center">
-<img src="res/Lena1.png" width="205">
-<img src="res/SH.png" width="205">
-<img src="res/SV.png" width="205">
-<img src="res/SW.png" width="205">
+<img src="res/Lena1.png" width="204">
+<img src="res/SH.png" width="204">
+<img src="res/SV.png" width="204">
+<img src="res/SW.png" width="204">
 </p>
 <p align="center">
-<img src="res/Lena2.png" width="205">
-<img src="res/MH.png" width="205">
-<img src="res/MV.png" width="205">
-<img src="res/MW.png" width="205">
+<img src="res/Lena2.png" width="204">
+<img src="res/MH.png" width="204">
+<img src="res/MV.png" width="204">
+<img src="res/MW.png" width="204">
 </p>
 
 ## About
