@@ -1,9 +1,9 @@
 [![Code quality][s1]][co] [![License][s2]][li]
 
-[s1]: https://api.codacy.com/project/badge/Grade/519c3cb4b3a34bff968ce382d2a9dbf7
+[s1]: https://app.codacy.com/project/badge/Grade/519c3cb4b3a34bff968ce382d2a9dbf7
 [s2]: https://img.shields.io/badge/licence-GPL%203.0-blue.svg
 
-[co]: https://www.codacy.com/app/matt77hias/composepy?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=matt77hias/composepy&amp;utm_campaign=Badge_Grade
+[co]: https://app.codacy.com/gh/matt77hias/composepy/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade
 [li]: https://raw.githubusercontent.com/matt77hias/composepy/master/LICENSE.txt
 
 # composepy
